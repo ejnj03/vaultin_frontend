@@ -172,7 +172,10 @@ function MyERC20() {
     const timer = setTimeout(() => setIsChecking(false), 1000);
 
     if (isConnected && address) {
-      // Try loading cache first
+      // Clear previous account's data immediately
+      setNetworkTokens({});
+
+      // Try loading cache for this address
       const cacheKey = `portfolio_v2_${address}`;
       const cached = localStorage.getItem(cacheKey);
 
@@ -192,6 +195,9 @@ function MyERC20() {
       }
 
       fetchAll();
+    } else {
+      // Wallet disconnected — clear state
+      setNetworkTokens({});
     }
 
     return () => clearTimeout(timer);

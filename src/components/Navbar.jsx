@@ -1,18 +1,13 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ConnectKitButton } from 'connectkit';
 
 const NAV_LINKS = [
-    { to: '/', label: 'About', exact: true },
-    { to: '/', label: 'Contact' },
-    { to: '/', label: 'Help' },
+    { to: '#about', label: 'About' },
+    { to: '#contact', label: 'Contact' },
+    { to: '#help', label: 'Help' },
 ];
 
 export default function Navbar() {
-    const { pathname } = useLocation();
-
-    const isActive = (link) =>
-        link.exact ? pathname === link.to : pathname.startsWith(link.to);
-
     return (
         <div className="sticky top-3 z-50 px-4">
             <div className="navbar bg-base-200/70 backdrop-blur-xl rounded-box shadow-lg border border-base-content/5 max-w-6xl mx-auto">
@@ -24,13 +19,10 @@ export default function Navbar() {
                 <div className="flex-none">
                     <ul className="menu menu-horizontal px-1 gap-1 text-sm font-medium">
                         {NAV_LINKS.map((link) => (
-                            <li key={link.to}>
-                                <Link
-                                    to={link.to}
-                                    className={`rounded-btn ${isActive(link) ? 'text-primary bg-primary/10' : ''}`}
-                                >
+                            <li key={link.label}>
+                                <a href={link.to} className="rounded-btn">
                                     {link.label}
-                                </Link>
+                                </a>
                             </li>
                         ))}
                     </ul>
