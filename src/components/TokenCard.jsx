@@ -1,62 +1,75 @@
 import { Utils } from 'alchemy-sdk';
 
-// Skeleton card shown while loading
+function formatBalance(raw, decimals) {
+  const formatted = Utils.formatUnits(raw, decimals);
+  const num = parseFloat(formatted);
+  if (num === 0) return '0';
+  if (num >= 1_000_000) return (num / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'M';
+  if (num >= 1_000) return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (num >= 1) return num.toLocaleString(undefined, { maximumFractionDigits: 4 });
+  return num.toLocaleString(undefined, { maximumSignificantDigits: 4 });
+}
+
 export function TokenCardSkeleton() {
   return (
-    <div className='card w-full bg-base-200/300 text-base-content shadow-xl border-2 border-primary/10 animate-pulse'>
-      <div className="card-body p-6">
-        <div className="flex flex-col items-start gap-5">
-          {/* Match the header section */}
-          <div className="flex flex-row gap-4 items-center pb-4 border-b border-primary/20 w-full">
-            <div className='w-12 h-12 bg-primary/20 rounded-full'></div>
-            <div className='flex-1'>
-              <div className='h-5 bg-primary/20 rounded w-3/4 mb-2'></div>
-              <div className='h-4 bg-primary/10 rounded w-1/2'></div>
-            </div>
-          </div>
-          {/* Match the balance section */}
-          <div className="w-full bg-base-100/30 rounded-lg p-4">
-            <div className='h-3 bg-primary/10 rounded w-1/3 mb-2'></div>
-            <div className='h-8 bg-primary/20 rounded w-full mb-1'></div>
-            <div className='h-4 bg-primary/10 rounded w-1/4'></div>
+    <tr className="animate-pulse border-b border-base-content/5">
+      <td className="py-4 px-6">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-base-content/10 rounded-full shrink-0"></div>
+          <div>
+            <div className="h-4 bg-base-content/10 rounded w-24 mb-1.5"></div>
+            <div className="h-3 bg-base-content/5 rounded w-14"></div>
           </div>
         </div>
-      </div>
-    </div>
+      </td>
+      <td className="py-4 px-6 hidden sm:table-cell">
+        <div className="h-5 bg-base-content/5 rounded-full w-12"></div>
+      </td>
+      <td className="py-4 px-6 text-right">
+        <div className="h-4 bg-base-content/10 rounded w-32 ml-auto"></div>
+      </td>
+    </tr>
   );
 }
 
-// Main token card component
-export function TokenCard({ token, balance }) {
+export function TokenCard({ token }) {
+  const display = formatBalance(token.balance, token.decimals);
+
   return (
-    <div className='card w-full bg-gradient-to-br from-base-200 to-base-300 text-base-content shadow-2xl hover:shadow-primary/30 transition-all duration-300 border-2 border-primary/20 hover:border-primary/50 hover:scale-105'>
-      <div className="card-body p-6 text-left">
-        <div className="flex flex-col w-full gap-5">
-          <div className="flex flex-row gap-4 items-start pb-4 border-b border-primary/20">
-            {token.logo ?
-              <img src={token.logo} className='w-12 h-12 rounded-full' alt={token.symbol} />
-              :
-              <div className='w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-primary-content font-black text-xl shadow-lg'>
-                {token.symbol?.[0] || '?'}
-              </div>
-            }
-            <div className="flex flex-col items-start flex-1">
-              <h2 className="text-xl font-extrabold text-base-content truncate">{token.name}</h2>
-              <p className="text-sm text-primary font-semibold">${token.symbol}</p>
+    <tr className="border-b border-base-content/5 last:border-b-0 hover:bg-base-content/[0.03] transition-colors">
+      <td className="py-3.5 px-6">
+        <div className="flex items-center gap-3">
+          {token.logo ? (
+            <img src={token.logo} className="w-9 h-9 rounded-full shrink-0" alt={token.symbol} />
+          ) : (
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-bold text-sm"
+              style={{ backgroundColor: (token.network?.color || '#627EEA') + '18', color: token.network?.color || '#627EEA' }}
+            >
+              {token.symbol?.[0] || '?'}
             </div>
-          </div>
-          <div className="w-full bg-base-100/30 rounded-lg p-4">
-            <p className="text-xs text-base-content/60 uppercase tracking-widest mb-2 font-bold">Account Balance</p>
-            <div className="flex flex-row items-baseline">
-              <span className="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent break-all pr-3">
-                {Utils.formatUnits(balance, token.decimals)}
-              </span>
-              <span className="text-sm text-base-content/70 font-semibold">{token.symbol}</span>
-            </div>
+          )}
+          <div className="min-w-0">
+            <p className="font-semibold text-base-content truncate">{token.name}</p>
+            <p className="text-xs text-base-content/40">{token.symbol}</p>
           </div>
         </div>
-      </div>
-    </div>
+      </td>
+      <td className="py-3.5 px-6 hidden sm:table-cell">
+        <span
+          className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap"
+          style={{ backgroundColor: (token.network?.color || '#627EEA') + '18', color: token.network?.color || '#627EEA' }}
+        >
+          {token.network?.shortName || 'ETH'}
+        </span>
+      </td>
+      <td className="py-3.5 px-6 text-right">
+        <p className="font-semibold text-base-content tabular-nums whitespace-nowrap">
+          {display} <span className="text-base-content/50 font-normal">{token.symbol}</span>
+        </p>
+        <p className="text-xs text-base-content/40 sm:hidden">{token.network?.name}</p>
+      </td>
+    </tr>
   );
 }
 
