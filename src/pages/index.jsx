@@ -1,5 +1,6 @@
-export { default as WalletBalances } from './WalletBalances'
 export { default as Home } from './Home'
 export { default as MyERC } from './MyERC'
 export { default as EntityIndex } from './EntityIndex'
 export { default as LabelAnalytics } from './LabelAnalytics'
+export { default as CryptoIndex } from './CryptoIndex'
+export { default as CryptoDetail } from './CryptoDetail'

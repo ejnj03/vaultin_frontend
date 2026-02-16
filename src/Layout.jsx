@@ -1,12 +1,29 @@
-import { useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAccount, useSignMessage, useAccountEffect } from 'wagmi';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import { Outlet } from 'react-router-dom';
+import { login, logout } from './utils/useAuth';
 
 export function Layout() {
-  const { isConnected } = useAccount();
+  const { signMessageAsync } = useSignMessage();
+  const { address, isConnected } = useAccount();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (isConnected && address && sessionStorage.getItem("siwe_logged_in") !== address) {
+      login(address, signMessageAsync).then(() => {
+        sessionStorage.setItem("siwe_logged_in", address)
+      })
+    }
+  }, [isConnected, address]);
+
+  useAccountEffect({
+    onDisconnect() {
+      logout()
+      sessionStorage.removeItem("siwe_logged_in")
+    }
+  })
 
   // Not connected: top Navbar + page content
   if (!isConnected) {

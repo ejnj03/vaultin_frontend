@@ -1,7 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAccount } from 'wagmi';
+import { Utils } from 'alchemy-sdk';
 import { TokenCard, TokenCardSkeleton } from '../components/TokenCard';
+import { useCryptoData } from '../contexts/CryptoDataContext';
 
 const ALCHEMY_KEY = import.meta.env.VITE_ALCHEMY_API_KEY;
 
@@ -130,6 +132,17 @@ function MyERC20() {
   const [networkTokens, setNetworkTokens] = useState({});
   const [loadingNetworks, setLoadingNetworks] = useState(new Set());
   const [selectedNetwork, setSelectedNetwork] = useState('all');
+  const { data: cryptoData } = useCryptoData();
+
+  // Build a lookup map: symbol (lowercase) -> coin price data
+  const priceMap = useMemo(() => {
+    if (!cryptoData) return {};
+    const map = {};
+    for (const coin of cryptoData) {
+      map[coin.symbol.toLowerCase()] = coin;
+    }
+    return map;
+  }, [cryptoData]);
 
   async function fetchAll() {
     const allLoading = new Set(NETWORKS.map(n => n.id));
@@ -213,6 +226,21 @@ function MyERC20() {
   const networksWithHoldings = NETWORKS.filter(n => (networkTokens[n.id] || []).length > 0);
   const truncatedAddr = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
 
+  const totalValue = useMemo(() => {
+    if (allTokens.length === 0) return null;
+    let total = 0;
+    let hasAnyPrice = false;
+    for (const token of allTokens) {
+      const price = priceMap[token.symbol.toLowerCase()]?.current_price;
+      if (price) {
+        const humanBalance = parseFloat(Utils.formatUnits(token.balance, token.decimals));
+        total += humanBalance * price;
+        hasAnyPrice = true;
+      }
+    }
+    return hasAnyPrice ? total : null;
+  }, [allTokens, priceMap]);
+
   return (
     <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-8 max-w-[1200px] mx-auto">
       {/* Dashboard Header */}
@@ -285,10 +313,20 @@ function MyERC20() {
       ) : (
         <>
           {/* Stats Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <div className="bg-base-200 rounded-box p-5 border border-base-content/5">
+              <p className="text-xs text-base-content/40 uppercase tracking-wider font-medium mb-1">Portfolio Value</p>
+              <p className="text-2xl font-bold text-primary">
+                {totalValue != null
+                  ? '$' + (totalValue >= 1e6
+                      ? (totalValue / 1e6).toFixed(2) + 'M'
+                      : totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+                  : '—'}
+              </p>
+            </div>
             <div className="bg-base-200 rounded-box p-5 border border-base-content/5">
               <p className="text-xs text-base-content/40 uppercase tracking-wider font-medium mb-1">Total Assets</p>
-              <p className="text-2xl font-bold text-primary">{allTokens.length}</p>
+              <p className="text-2xl font-bold text-secondary">{allTokens.length}</p>
             </div>
             <div className="bg-base-200 rounded-box p-5 border border-base-content/5">
               <p className="text-xs text-base-content/40 uppercase tracking-wider font-medium mb-2">Networks</p>
@@ -359,21 +397,29 @@ function MyERC20() {
               <table className="table w-full">
                 <thead>
                   <tr className="border-b border-base-content/5">
-                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium px-6 py-3">Token</th>
-                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium px-6 py-3 hidden sm:table-cell">Network</th>
-                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium px-6 py-3 text-right">Balance</th>
+                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium pl-8 pr-6 py-3">Token</th>
+                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium px-6 py-3 text-center hidden lg:table-cell">Network</th>
+                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium px-6 py-3 text-center">Price</th>
+                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium px-6 py-3 text-center hidden lg:table-cell">1h</th>
+                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium px-6 py-3 text-center">24h</th>
+                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium px-6 py-3 text-center hidden lg:table-cell">7d</th>
+                    <th className="text-xs text-base-content/40 uppercase tracking-wider font-medium pl-6 pr-8 py-3 text-center">Holdings</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTokens.length > 0 ? (
                     filteredTokens.map((token) => (
-                      <TokenCard key={`${token.network.id}_${token.contractAddress}`} token={token} />
+                      <TokenCard
+                        key={`${token.network.id}_${token.contractAddress}`}
+                        token={token}
+                        priceData={priceMap[token.symbol.toLowerCase()] || null}
+                      />
                     ))
                   ) : isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => <TokenCardSkeleton key={i} />)
                   ) : (
                     <tr>
-                      <td colSpan={3} className="text-center py-12 text-base-content/40">
+                      <td colSpan={7} className="text-center py-12 text-base-content/40">
                         No tokens found on {selectedNetwork === 'all' ? 'any network' : NETWORKS.find(n => n.id === selectedNetwork)?.name}.
                       </td>
                     </tr>
