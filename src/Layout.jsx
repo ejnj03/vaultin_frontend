@@ -3,25 +3,42 @@ import { useAccount, useSignMessage, useAccountEffect } from 'wagmi';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import { Outlet } from 'react-router-dom';
-import { login, logout } from './utils/useAuth';
+import { login, logout, check_registered } from './utils/useAuth';
+import RegisterModal from './components/RegisterModal';
 
 export function Layout() {
   const { signMessageAsync } = useSignMessage();
   const { address, isConnected } = useAccount();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  //state regarding whether we're checking if the user is registered
+  const [checking, setChecking] = useState(false);
+  const [username, setUsername] = useState(() => sessionStorage.getItem("vaultin_username"))
 
+  //login and auth
   useEffect(() => {
     if (isConnected && address && sessionStorage.getItem("siwe_logged_in") !== address) {
-      login(address, signMessageAsync).then(() => {
+      setChecking(true)
+      setUsername(null)
+      login(address, signMessageAsync).then(async () => {
         sessionStorage.setItem("siwe_logged_in", address)
+        const user_data = await check_registered()
+        const name = user_data?.username ?? null
+        setUsername(name)
+        if (name) {
+          sessionStorage.setItem("vaultin_username", name)
+        }
+        setChecking(false)
       })
     }
   }, [isConnected, address]);
 
+  //logout
   useAccountEffect({
     onDisconnect() {
       logout()
       sessionStorage.removeItem("siwe_logged_in")
+      sessionStorage.removeItem("vaultin_username")
+      setUsername(null)
     }
   })
 
@@ -38,7 +55,21 @@ export function Layout() {
   // Connected: Sidebar + page content
   return (
     <div className="min-h-screen">
-      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+      {!checking && !username && (
+        <RegisterModal onRegistered={(name) => {
+          setUsername(name)
+          sessionStorage.setItem("vaultin_username", name)
+        }} />
+      )}
+      {checking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-base-100 rounded-xl p-8 text-center shadow-xl">
+            <span className="loading loading-spinner loading-lg" />
+            <p className="mt-4 font-medium">Logging in...</p>
+          </div>
+        </div>
+      )}
+      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} username={username} />
 
       <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-[68px]'}`}>
         {/* Mobile top bar (hamburger + logo) */}

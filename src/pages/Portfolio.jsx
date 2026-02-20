@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { Utils } from 'alchemy-sdk';
-import { TokenCard, TokenCardSkeleton } from '../components/TokenCard';
+import { TokenRow, TokenRowSkeleton } from '../components/TokenRow';
 import { useCryptoData } from '../contexts/CryptoDataContext';
 
 const ALCHEMY_KEY = import.meta.env.VITE_ALCHEMY_API_KEY;
@@ -126,7 +126,7 @@ async function fetchNetworkTokens(network, address) {
   return tokens;
 }
 
-function MyERC20() {
+function Portfolio() {
   const [isChecking, setIsChecking] = useState(true);
   const { address, isConnected } = useAccount();
   const [networkTokens, setNetworkTokens] = useState({});
@@ -409,14 +409,14 @@ function MyERC20() {
                 <tbody>
                   {filteredTokens.length > 0 ? (
                     filteredTokens.map((token) => (
-                      <TokenCard
+                      <TokenRow
                         key={`${token.network.id}_${token.contractAddress}`}
                         token={token}
                         priceData={priceMap[token.symbol.toLowerCase()] || null}
                       />
                     ))
                   ) : isLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => <TokenCardSkeleton key={i} />)
+                    Array.from({ length: 5 }).map((_, i) => <TokenRowSkeleton key={i} />)
                   ) : (
                     <tr>
                       <td colSpan={7} className="text-center py-12 text-base-content/40">
@@ -442,4 +442,4 @@ function MyERC20() {
   );
 }
 
-export default MyERC20;
+export default Portfolio;

@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { Home, MyERC, CryptoIndex, CryptoDetail, EntityIndex, LabelAnalytics } from './pages/index.jsx'
+import { LandingPage, Portfolio, Transfer, Contacts, Requests, Dashboard, Swap } from './pages/index.jsx'
 import { Web3Provider } from './Web3Provider.jsx'
 import { CryptoDataProvider } from './contexts/CryptoDataContext.jsx'
 import './index.css'
@@ -10,8 +10,8 @@ import { useAccount } from 'wagmi'
 
 function IndexRoute() {
   const { isConnected } = useAccount();
-  if (isConnected) return <Navigate to="/my-erc" replace />;
-  return <Home />;
+  if (isConnected) return <Navigate to="/portfolio" replace />;
+  return <LandingPage />;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -23,13 +23,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
           <Route index element={<IndexRoute />} />
 
-          <Route path="/my-erc" element={<MyERC />} />
-          
-          <Route path="/explore-crypto" element={<CryptoIndex />} />
-          <Route path="/crypto/:id" element={<CryptoDetail />} />
-
-          <Route path="/track-flows" element={<EntityIndex />} />
-          <Route path="/label/:labelName" element={<LabelAnalytics />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/transfer" element={<Transfer />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/requests" element={<Requests />} />
+          <Route path="/swap" element={<Swap />} />
         </Route>
       </Routes>
     </BrowserRouter>

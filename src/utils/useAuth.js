@@ -1,6 +1,6 @@
 import { SiweMessage } from "siwe";
 
-const API_URL = "https://9djqt1k5r5.execute-api.us-east-1.amazonaws.com"
+const API_URL = import.meta.env.VITE_AUTH_LAMBDA
 
 //get requests shouldnt modify anything, so logout is fetch
 //allow credentials allows server-side to modify cookies and client side to send cookies
@@ -56,5 +56,20 @@ export async function logout() {
         console.log("Successfully revoked access token")
     } catch (err) {
         console.warn("Logout request failed:", err);
+    }
+}
+
+export async function check_registered() {
+    //runs clearing cookie (jws token) access
+    try {
+        const res = await fetch(`${API_URL}/find-username`, {
+            method: "GET",
+            credentials: "include",
+        });
+        const data = await res.json()
+        console.log("Successfully fetched registeration status: ", data)
+        return data
+    } catch (err) {
+        console.warn("Check registered request failed:", err);
     }
 }

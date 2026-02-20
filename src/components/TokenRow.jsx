@@ -37,7 +37,7 @@ function PctBadge({ value }) {
   );
 }
 
-export function TokenCardSkeleton() {
+export function TokenRowSkeleton() {
   return (
     <tr className="animate-pulse border-b border-base-content/5">
       <td className="py-4 pl-8 pr-6">
@@ -72,7 +72,7 @@ export function TokenCardSkeleton() {
   );
 }
 
-export function TokenCard({ token, priceData }) {
+export function TokenRow({ token, priceData }) {
   const humanBalance = parseFloat(Utils.formatUnits(token.balance, token.decimals));
   const display = formatBalance(token.balance, token.decimals);
   const value = priceData ? humanBalance * priceData.current_price : null;
@@ -130,4 +130,4 @@ export function TokenCard({ token, priceData }) {
   );
 }
 
-export default TokenCard;
+export default TokenRow;

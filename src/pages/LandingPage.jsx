@@ -743,7 +743,7 @@ function Step({ number, title, desc, delay }) {
 }
 
 /* ════════════ MAIN ════════════ */
-function Home() {
+function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* ─── Hero ─── */}
@@ -884,4 +884,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default LandingPage;
