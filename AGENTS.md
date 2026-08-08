@@ -20,15 +20,15 @@ Create a root `.env` (gitignored) with:
 
 - `VITE_ALCHEMY_API_KEY` — Alchemy RPC + Portfolio
 - `VITE_WALLETCONNECT_PROJECT_ID` — ConnectKit / WalletConnect
-- `VITE_AUTH_LAMBDA` — **deployed** API Gateway base URL (no trailing slash)
+- `VITE_AUTH_LAMBDA` — **deployed** API Gateway base URL. For this frontend’s relative paths (`/nonce`, `/verify`, `/logout` in `useAuth.js`), the value should end with `/auth` (e.g. `https://<api-id>.execute-api.us-east-1.amazonaws.com/auth`), because the Lambda routes are `/auth/nonce`, etc.
 
-These are **build-time** `VITE_*` vars. Without them the landing page still loads; wallet connect, portfolio, auth, transfers, requests, and contacts need the real values.
+These are **build-time** `VITE_*` vars — restart `npm run dev` after changing `.env`. Without them the landing page still loads; wallet connect, portfolio, auth, transfers, requests, and contacts need the real values.
 
 ### Gotchas
 
-- Backend work = edit `vaultin-backend` and `sam deploy`; frontend work = this repo + `.env` pointing at the live API.
+- Backend work = edit `vaultin-backend` and `sam deploy`; frontend work = this repo + `.env` pointing at the live API. Do not run `sam local` for normal frontend development.
 - Auth and payments are two API Gateways in AWS; this frontend currently has a single `VITE_AUTH_LAMBDA`.
-- Frontend and backend route prefixes may not match 1:1 (e.g. frontend `/nonce` vs backend `/auth/nonce`). Check `src/utils/useAuth.js` against the deployed routes.
+- Some frontend paths still drift from the deployed API (e.g. `/find-username` vs `/auth/utils/find-username`, payment-request path names). Auth SIWE (`/nonce`, `/verify`) works when `VITE_AUTH_LAMBDA` ends with `/auth`.
 - `src/utils/config.js` has a hard-coded WalletConnect `projectId`; the live provider path is `src/Web3Provider.jsx` (`VITE_*`).
 - Supabase is in `package.json` but unused in `src/`.
 - `CryptoDataContext.jsx` hard-codes a separate prices API (`https://9djqt1k5r5.execute-api.us-east-1.amazonaws.com`).
