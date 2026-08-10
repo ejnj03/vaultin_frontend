@@ -1,19 +1,18 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { mainnet, arbitrum, polygon } from "wagmi/chains";
+import { mainnet, arbitrum, base, optimism, polygon } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 
 // This defines how your app connects to blockchains
 const config = createConfig(
   getDefaultConfig({
-    // Which blockchains your app supports
-    //just mainnet for now
-    chains: [mainnet],
-    
-    // RPC endpoints - how to talk to each blockchain
+    chains: [mainnet, arbitrum, base, optimism, polygon],
+
     transports: {
       [mainnet.id]: http(`https://eth-mainnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`),
       [arbitrum.id]: http(`https://arb-mainnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`),
+      [base.id]: http(`https://base-mainnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`),
+      [optimism.id]: http(`https://opt-mainnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`),
       [polygon.id]: http(`https://polygon-mainnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`),
     },
 
@@ -23,7 +22,7 @@ const config = createConfig(
     // App metadata (shows in wallet when connecting)
     appName: "Vault.io",
     appDescription: "Automate Your Wallet with Vault",
-    appUrl: "https://vault.io",
+    appUrl: "https://vaultin.app",
   }),
 );
 

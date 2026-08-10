@@ -1,5 +1,31 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/fonts/Satoshi-Variable.woff2') format('woff2');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('./assets/fonts/Geist[wght].woff2') format('woff2');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Satoshi', sans-serif;
+  font-optical-sizing: auto; /* lets the opsz axis work */
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;  /* big one on Mac */
+  -moz-osx-font-smoothing: grayscale;
+}
+
 @plugin "daisyui";
+
 
 /* Hero animations */
 @keyframes float-up {
@@ -26,18 +52,82 @@
   50% { opacity: 0.3; transform: scale(1.1); }
 }
 
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
 
+/* Auth loading animations */
+@keyframes auth-spin-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes auth-spin-ccw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes auth-scan {
+  0% { top: -2px; opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes auth-glow-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.95); }
+  50% { opacity: 0.9; transform: scale(1.1); }
+}
+
+@keyframes auth-pip-pulse {
+  0%, 100% { box-shadow: 0 0 4px oklch(64% 0.155 152 / 0.5); }
+  50% { box-shadow: 0 0 10px oklch(64% 0.155 152); }
+}
+
+@keyframes auth-page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Onboarding animations */
+@keyframes ob-slide-fwd {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ob-slide-back {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ob-drop {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ob-scale {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes ob-check {
+  from { stroke-dashoffset: 30; opacity: 0; }
+  to   { stroke-dashoffset: 0; opacity: 1; }
+}
+
 .hero-gradient-bg {
   background: linear-gradient(
     -45deg,
-    oklch(20.84% 0.008 17.911),
-    oklch(22% 0.04 149),
-    oklch(18.5% 0.007 17.911),
-    oklch(20% 0.03 168)
+    oklch(7.4% 0 0),
+    oklch(12% 0.03 152),
+    oklch(8% 0 0),
+    oklch(10% 0.02 152)
   );
   background-size: 400% 400%;
   animation: gradient-shift 15s ease infinite;
@@ -64,27 +154,43 @@
   animation: glow-pulse ease-in-out infinite;
 }
 
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.font-mono {
+  font-family: 'Geist Mono', monospace;
+}
+
+/* Portfolio panel: auto-sized on mobile, resizable on desktop */
+@media (min-width: 1024px) {
+  .portfolio-panel {
+    flex: 0 0 var(--panel-pct, 30%) !important;
+  }
+}
+
 
 @plugin "daisyui/theme" {
   name: "forest";
   default: false;
   prefersdark: false;
   color-scheme: "dark";
-  --color-base-100: oklch(20.84% 0.008 17.911);
-  --color-base-200: oklch(18.522% 0.007 17.911);
-  --color-base-300: oklch(16.203% 0.007 17.911);
-  --color-base-content: oklch(83.768% 0.001 17.911);
-  --color-primary: oklch(68.628% 0.185 148.958);
+  --color-base-100: oklch(7.4% 0 0);
+  --color-base-200: oklch(11.5% 0 0);
+  --color-base-300: oklch(15.6% 0 0);
+  --color-base-content: oklch(84% 0 0);
+  --color-primary: oklch(64% 0.155 152);
   --color-primary-content: oklch(0% 0 0);
-  --color-secondary: oklch(69.776% 0.135 168.327);
-  --color-secondary-content: oklch(13.955% 0.027 168.327);
-  --color-accent: oklch(70.628% 0.119 185.713);
-  --color-accent-content: oklch(14.125% 0.023 185.713);
-  --color-neutral: oklch(30.698% 0.039 171.364);
-  --color-neutral-content: oklch(86.139% 0.007 171.364);
+  --color-secondary: oklch(68% 0.12 168);
+  --color-secondary-content: oklch(14% 0.02 168);
+  --color-accent: oklch(69% 0.1 186);
+  --color-accent-content: oklch(14% 0.02 186);
+  --color-neutral: oklch(24% 0 0);
+  --color-neutral-content: oklch(86% 0 0);
   --color-info: oklch(72.06% 0.191 231.6);
   --color-info-content: oklch(0% 0 0);
-  --color-success: oklch(64.8% 0.15 160);
+  --color-success: oklch(62% 0.13 155);
   --color-success-content: oklch(0% 0 0);
   --color-warning: oklch(84.71% 0.199 83.87);
   --color-warning-content: oklch(0% 0 0);

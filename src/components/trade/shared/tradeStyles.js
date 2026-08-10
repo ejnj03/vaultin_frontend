@@ -1,0 +1,10 @@
+export const CARD = 'bg-base-300 rounded-2xl p-4';
+export const CARD_PRIMARY = 'bg-base-300 rounded-2xl p-4 border border-base-content/5';
+export const INPUT_NUM = 'bg-transparent text-[32px] font-semibold w-full outline-none placeholder:text-base-content/20 text-base-content tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
+export const INPUT_TEXT = 'bg-transparent text-sm w-full outline-none placeholder:text-base-content/20 text-base-content';
+export const LABEL = 'text-xs font-medium text-base-content/40';
+export const BTN_READY = 'btn btn-primary btn-block rounded-2xl mt-3 text-sm font-bold h-[52px] hover:brightness-110 active:scale-[0.98] transition-all';
+export const BTN_DISABLED = 'btn btn-block rounded-2xl mt-3 text-sm font-bold h-[52px] bg-base-content/10 text-base-content/30 border-none cursor-not-allowed opacity-50';
+export const BTN_PROMPT = 'btn btn-primary btn-block rounded-2xl mt-3 text-sm font-bold h-[52px] border-none transition-all';
+export const BTN_LOADING = 'btn btn-primary btn-block rounded-2xl mt-3 text-sm font-bold h-[52px] transition-all opacity-80';
+export const BTN = BTN_READY;

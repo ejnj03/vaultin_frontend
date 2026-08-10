@@ -1,6 +1,5 @@
 import { SiweMessage } from "siwe";
-
-const API_URL = import.meta.env.VITE_AUTH_LAMBDA
+import { get_res } from './api_utils';
 
 //get requests shouldnt modify anything, so logout is fetch
 //allow credentials allows server-side to modify cookies and client side to send cookies
@@ -8,9 +7,7 @@ export async function login(address, signMessageAsync) {
     //runs whenever an account is connected
     //request the backend for a nonce
     console.log("running login")
-    const res = await fetch(`${API_URL}/nonce`, {credentials: "include"})
-    const nonceData = await res.json()
-    //console.log("nonce response:", nonceData)
+    const nonceData = await get_res('auth/nonce')
     const { nonce } = nonceData
     //generate a msg with the nonce
     const message = new SiweMessage({
@@ -22,37 +19,30 @@ export async function login(address, signMessageAsync) {
         chainId: 1,
         nonce: nonce
     })
-    
+
     //popup for signing the message
     //turns siwe msg into human readable string that gets shown in the wallet signing popup
     const signature = await signMessageAsync({
         message: message.prepareMessage(),
     });
 
-    const verifyRes = await fetch(`${API_URL}/verify`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json"},
-        body: JSON.stringify({
+    const data = await get_res('auth/verify', {
+        method: 'POST',
+        body: {
             message: message.prepareMessage(),
             signature: signature,
-        }),
+        }
     })
 
-    const data = await verifyRes.json()
-
     console.log("Login Successful. Wallet Address", data.address)
-    //console.log(data)
+    //should include the access token
     return data
 }
 
 export async function logout() {
     //runs clearing cookie (jws token) access
     try {
-        await fetch(`${API_URL}/logout`, {
-            method: "POST",
-            credentials: "include",
-        });
+        await get_res('auth/logout', { method: 'POST' })
         console.log("Successfully revoked access token")
     } catch (err) {
         console.warn("Logout request failed:", err);
@@ -60,13 +50,10 @@ export async function logout() {
 }
 
 export async function check_registered() {
-    //runs clearing cookie (jws token) access
     try {
-        const res = await fetch(`${API_URL}/find-username`, {
-            method: "GET",
-            credentials: "include",
-        });
-        const data = await res.json()
+        //const data = await get_res('auth/utils/find-username')
+        const res = await get_res('auth/utils/lookup-userData')
+        const data = res.data
         console.log("Successfully fetched registeration status: ", data)
         return data
     } catch (err) {
