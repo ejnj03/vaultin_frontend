@@ -52,6 +52,32 @@ async function fetchNetworkTransfers(networkId, address, fromBlock) {
     return { sentAlchemy, receivedAlchemy, networkId };
 }
 
+// txns/get-completed returns what was recorded when a transfer was sent.
+//
+// Two response shapes are accepted. Historically the endpoint returned
+// { hash: title } as a bare string; it now returns an object per hash carrying
+// the counterparty as well. Both are handled so the frontend can ship ahead of
+// the backend, and so entries already cached under the old shape are upgraded
+// in place rather than requiring the IDB to be cleared.
+//
+// The counterparty matters because same-chain cross-token transfers route
+// through Uniswap: on-chain the router is the counterparty for both parties, so
+// the only record of who was actually paid is the one written at send time.
+//
+// Returns only the fields that are missing and available, so callers can spread
+// it and an empty object means nothing to update.
+function sidecarFields(record, existing) {
+    if (!record) return {};
+    const { title, fromUser, toUser } =
+        typeof record === 'string' ? { title: record } : record;
+
+    const fields = {};
+    if (title && !existing.title) fields.title = title;
+    if (fromUser && !existing.fromUser) fields.fromUser = fromUser;
+    if (toUser && !existing.toUser) fields.toUser = toUser;
+    return fields;
+}
+
 export async function get_transfers(apiCall, address, onUpdate) {
     // 1. Read all cached from IDB
     const readTx = db.transaction("transfers");
@@ -92,7 +118,7 @@ export async function get_transfers(apiCall, address, onUpdate) {
         allNewTransfers.push(...networkTransfers);
     }
 
-    // 4. Fetch titles from API
+    // 4. Fetch per-transaction metadata recorded when the transfer was sent
     const db_titles = await apiCall("txns/get-completed", { service: 'payments' });
 
     // 5. Write new transfers to IDB with per-network block checkpoints
@@ -100,10 +126,7 @@ export async function get_transfers(apiCall, address, onUpdate) {
     const highestBlocks = {};
 
     for (const transfer of allNewTransfers) {
-        const updated = { ...transfer, ownerAddress: address };
-        if (!("title" in transfer) && transfer.hash in db_titles) {
-            updated["title"] = db_titles[transfer.hash];
-        }
+        const updated = { ...transfer, ownerAddress: address, ...sidecarFields(db_titles[transfer.hash], transfer) };
         await writeTx.objectStore("transfers").put(updated);
 
         const blockNum = parseInt(transfer.blockNum, 16);
@@ -113,10 +136,13 @@ export async function get_transfers(apiCall, address, onUpdate) {
         }
     }
 
-    // Apply titles to cached entries missing them
+    // Backfill cached entries. Also covers entries cached before counterparty
+    // identity was recorded, and entries whose title was written under the old
+    // response shape, so an existing IDB does not need clearing.
     for (const entry of cached) {
-        if (!entry.title && entry.hash in db_titles) {
-            await writeTx.objectStore("transfers").put({ ...entry, title: db_titles[entry.hash] });
+        const fields = sidecarFields(db_titles[entry.hash], entry);
+        if (Object.keys(fields).length > 0) {
+            await writeTx.objectStore("transfers").put({ ...entry, ...fields });
         }
     }
 
