@@ -6,6 +6,7 @@ import { alchemyInstances, GAS_FEE_LIMIT } from '../../utils/alchemy';
 import { computeRunningBalances, computeAggregateRunningBalances } from '../../utils/transferProcessing';
 import { get_transfers, update_gas_fees } from '../../utils/txn_history';
 import { timeAgo, fmtAmount, fmtAmount6, fmtUsd, truncateAddr } from '../../utils/formatting';
+import { resolveAddressKinds, counterpartyLabel } from '../../utils/counterparties';
 import { useApi } from '../../hooks/useApi';
 import blockies from 'ethereum-blockies-base64';
 import TokenIcon from './TokenIcon';
@@ -37,6 +38,8 @@ export default function TransactionHistory({ tokenBalances }) {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('all');
   const [selectedTx, setSelectedTx] = useState(null);
+  // "address" → 'contract' | 'wallet', filled in after the feed renders
+  const [addressKinds, setAddressKinds] = useState({});
   const { address } = useAccount();
   const { contactProfiles } = useUser();
   const { data: cryptoData } = useCryptoData();
@@ -136,6 +139,34 @@ export default function TransactionHistory({ tokenBalances }) {
       networks.add(t.network || 'ethereum');
     }
     return { uniqueTokens: [...tokens].sort(), uniqueNetworks: [...networks].sort() };
+  }, [transfers]);
+
+  // Classify counterparties as contract or wallet, so the feed can say
+  // "Contract" instead of "External". Runs after transfers land and only asks
+  // about addresses it has not already resolved; results are cached in IDB.
+  useEffect(() => {
+    if (transfers.length === 0) return;
+    let mounted = true;
+
+    const byNetwork = {};
+    for (const tx of transfers) {
+      if (tx.direction === 'swapped') continue; // rendered by hash, no counterparty shown
+      const addr = tx.direction === 'sent' ? tx.to : tx.from;
+      if (!addr || addressKinds[addr.toLowerCase()]) continue;
+      const net = tx.network || 'ethereum';
+      (byNetwork[net] ||= []).push(addr);
+    }
+    if (Object.keys(byNetwork).length === 0) return;
+
+    (async () => {
+      const resolved = await Promise.all(
+        Object.entries(byNetwork).map(([net, addrs]) => resolveAddressKinds(net, addrs))
+      );
+      if (!mounted) return;
+      setAddressKinds(prev => Object.assign({}, prev, ...resolved));
+    })();
+
+    return () => { mounted = false; };
   }, [transfers]);
 
   // Apply token/network filters first, then split by direction
@@ -378,7 +409,9 @@ export default function TransactionHistory({ tokenBalances }) {
                         <div className="flex items-center gap-2 justify-end">
                           <img src={blockies(counterpartyAddr)} alt="" className="w-6 h-6 rounded-full shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-xs text-base-content/30 truncate">External</p>
+                            <p className="text-xs text-base-content/30 truncate">
+                              {counterpartyLabel(counterpartyAddr, addressKinds[counterpartyAddr.toLowerCase()])}
+                            </p>
                             <p className="text-[11px] text-base-content/40 font-mono truncate">{truncateAddr(counterpartyAddr)}</p>
                           </div>
                         </div>

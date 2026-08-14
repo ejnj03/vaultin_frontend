@@ -21,8 +21,15 @@ const db = await openDB("txn_history", DB_VERSION, {
     },
 });
 
-// 'internal' category only supported on Ethereum and Polygon
-const INTERNAL_SUPPORTED = new Set(['ethereum', 'polygon']);
+// Alchemy supports the 'internal' category on Ethereum, Polygon and Base.
+// Arbitrum and Optimism still reject it ("The 'internal' category is not
+// supported for this network"), verified 2026-08-14.
+//
+// This matters beyond completeness: a swap that pays out native ETH delivers it
+// as an internal transfer. Without that leg, mergeTransfers only sees the sent
+// side and labels the swap as a plain send to the router, so it renders as
+// "External" plus a contract address instead of as a swap.
+const INTERNAL_SUPPORTED = new Set(['ethereum', 'polygon', 'base']);
 
 // Fetch transfers for a single network
 async function fetchNetworkTransfers(networkId, address, fromBlock) {

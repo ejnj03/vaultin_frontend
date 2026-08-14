@@ -54,7 +54,7 @@ export const NETWORKS = [
 ];
 
 // Send a batch of JSON-RPC calls in a single HTTP request
-async function batchRpc(rpcUrl, calls) {
+export async function batchRpc(rpcUrl, calls) {
   if (calls.length === 0) return [];
   const body = calls.map((call, i) => ({
     jsonrpc: '2.0',

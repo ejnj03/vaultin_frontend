@@ -76,6 +76,64 @@ export const VERIFIED_CONTRACTS_FLAT = Object.fromEntries(
   )
 );
 
+// Counterparties worth naming in the transaction feed. Without these, a swap
+// through Uniswap is indistinguishable from paying a stranger — both render as
+// "External" plus an address.
+//
+// These are the contracts vault-payments builds swaps against, copied from
+// vaultin-backend: swap/v4/uniswap_v4_constants.py (UNIVERSAL_ROUTER,
+// POOL_MANAGER, PERMIT2) and swap/v3/uniswap_constants.py (UNISWAP_ROUTER).
+// Keep in sync with those; they are the authoritative source, since the backend
+// uses them to construct the transactions this feed later displays.
+//
+// Quoter and StateView addresses are deliberately absent — they are read-only
+// eth_call targets and never appear as a transfer counterparty.
+//
+// Anything not listed falls back to an eth_getCode check, which distinguishes a
+// contract from a wallet even when the specific contract is unrecognised.
+export const KNOWN_ADDRESSES = {
+  ethereum: {
+    '0x66a9893cc07d91d95644aedd05d03f95e1dba8af': 'Uniswap',
+    '0x000000000004444c5dc75cb358380d2e3de08a90': 'Uniswap',
+    '0xe592427a0aece92de3edee1f18e0157c05861564': 'Uniswap',
+    '0x000000000022d473030f116ddee9f6b43ac78ba3': 'Permit2',
+    // Observed in transaction history; confirmed a contract via eth_getCode
+    '0x881d40237659c251811cec9c364ef91dc08d300c': 'MetaMask Swaps',
+  },
+  arbitrum: {
+    '0xa51afafe0263b40edaef0df8781ea9aa03e381a3': 'Uniswap',
+    '0x360e68faccca8ca495c1b759fd9eee466db9fb32': 'Uniswap',
+    '0xe592427a0aece92de3edee1f18e0157c05861564': 'Uniswap',
+    '0x000000000022d473030f116ddee9f6b43ac78ba3': 'Permit2',
+  },
+  optimism: {
+    '0x851116d9223fabed8e56c0e6b8ad0c31d98b3507': 'Uniswap',
+    '0x9a13f98cb987694c9f086b1f5eb990eea8264ec3': 'Uniswap',
+    '0xe592427a0aece92de3edee1f18e0157c05861564': 'Uniswap',
+    '0x000000000022d473030f116ddee9f6b43ac78ba3': 'Permit2',
+  },
+  polygon: {
+    '0x1095692a6237d83c6a72f3f5efedb9a670c49223': 'Uniswap',
+    '0x67366782805870060151383f4bbff9dab53e5cd6': 'Uniswap',
+    '0xe592427a0aece92de3edee1f18e0157c05861564': 'Uniswap',
+    '0x000000000022d473030f116ddee9f6b43ac78ba3': 'Permit2',
+  },
+  base: {
+    '0x6ff5693b99212da76ad316178a184ab56d299b43': 'Uniswap',
+    '0x498581ff718922c3f8e6a244956af099b2652b2b': 'Uniswap',
+    '0x2626664c2603336e57b271c5c0b26f421741e481': 'Uniswap',
+    '0x000000000022d473030f116ddee9f6b43ac78ba3': 'Permit2',
+  },
+};
+
+// Flat lookup: address (lowercase) → label. Safe to flatten because a 20-byte
+// address is globally unique, so no chain can shadow another's entry.
+export const KNOWN_ADDRESSES_FLAT = Object.fromEntries(
+  Object.values(KNOWN_ADDRESSES).flatMap(addrs =>
+    Object.entries(addrs).map(([addr, label]) => [addr.toLowerCase(), label])
+  )
+);
+
 export const CHAIN_IDS = {
   'ethereum': '0x1',
   'polygon': '0x89',
