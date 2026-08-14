@@ -12,6 +12,12 @@ atomic Permit2.
 **Stack** — Vite + React 18, wagmi + viem, ConnectKit, ethers v5, SIWE,
 Alchemy SDK, Supabase, TanStack Query, Tailwind + daisyUI.
 
+___
+
+Quotes simulate the swap on-chain across routes in parallel, then show an accurate, full cost breakdown of the most optimal route — swap fee, gas, and total — before you sign.
+
+https://github.com/user-attachments/assets/d8811f45-c9cc-4282-a288-fa11dc51bb8d
+
 ---
 
 ## The idea
